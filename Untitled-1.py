@@ -1,9 +1,23 @@
 from random import *
 
+cant = 10
+zeroCount = 30
+
+inputsBinary = []
 inputs = []
 
-for _ in range(10):
-    numero = [choice(['0', '1']) for _ in range(30)]
-    s = int(''.join(numero), 2)
-    inputs.append(s)
+def getPoblacionInicial(cant, zeroCount):
+    for _ in range(cant):
+        numero = ''.join([choice(['0', '1']) for _ in range(zeroCount)])
+        inputsBinary.append(numero)
+
+        num = int(numero, 2)
+        inputs.append(num)
+
+def fitnessFunct():
+    pass
+
+
+
+print(inputsBinary)
 print(inputs)
