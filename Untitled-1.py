@@ -1,5 +1,7 @@
 from random import *
 from statistics import mean
+import matplotlib.pyplot as plt
+
 
 #funcion objetivo = x/(2**30-1)
 inputs = []
@@ -85,6 +87,10 @@ def objetiveFunc(x: int) -> float:
 
 def main():
 
+    maximos=[]
+    promedios=[]
+    minimos=[]
+
     objFuncs = []
     inputsBin, inputs = poblacion_inicial(tam_poblacion)
     for ciclo in range(ciclos):
@@ -100,6 +106,10 @@ def main():
         print("Mayor:" + str(max(objFuncs)))
         print("Promedio:" + str(mean(objFuncs)))
         print("Menor:" + str(min(objFuncs)))
+        maximos.append(max(objFuncs))
+        promedios.append(mean(objFuncs))
+        minimos.append(min(objFuncs))
+
 
         next_inputsBin = [] #inicializa la siguiente generación
         for i in range(int(tam_poblacion/2)): 
@@ -127,6 +137,33 @@ def main():
         for i in inputsBin:
             s = int(i, 2)
             inputs.append(s)
+
+    #Gráficas
+    plt.plot(maximos, color='red' ) 
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1])
+    plt.ylabel('valor') 
+    plt.xlabel('población') 
+    plt.title("Valores máximos") 
+    plt.show()
+
+    plt.plot(promedios, color='green' ) 
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1])
+    plt.ylabel('valor') 
+    plt.xlabel('población') 
+    plt.title("Valores promedio") 
+    plt.show()
+
+
+    plt.plot(minimos, color='blue' ) 
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1])
+    plt.ylabel('valor') 
+    plt.xlabel('población') 
+    plt.title("Valores mínimos") 
+    plt.show()
+
 
 
 
