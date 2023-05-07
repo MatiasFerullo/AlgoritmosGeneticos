@@ -14,6 +14,7 @@ tam_poblacion = 10
 ciclos = 20
 tam_torneo = 4
 metodo_selec = 'R' # R: ruleta / T: torneo
+usa_elitismo = True 
 
 
 #Chance esta entre (0, 1)
@@ -85,60 +86,7 @@ def objetiveFunc(x: int) -> float:
     return (x/(2**(30) - 1))
 
 
-def main():
-
-    maximos=[]
-    promedios=[]
-    minimos=[]
-
-    objFuncs = []
-    inputsBin, inputs = poblacion_inicial(tam_poblacion)
-    for ciclo in range(ciclos):
-        objFuncs=[]
-        #calcula la función objetivo de cada elemento
-        for ints in inputs:
-            objFuncs.append(objetiveFunc(ints))
-        funcs = fitness(objFuncs)
-
-        #extraer valores obtenidos
-        print("generación: " + str(ciclo))
-        print("Cromosoma Mayor valor: "+ str(inputsBin[objFuncs.index(max(objFuncs))]))
-        print("Mayor:" + str(max(objFuncs)))
-        print("Promedio:" + str(mean(objFuncs)))
-        print("Menor:" + str(min(objFuncs)))
-        maximos.append(max(objFuncs))
-        promedios.append(mean(objFuncs))
-        minimos.append(min(objFuncs))
-
-
-        next_inputsBin = [] #inicializa la siguiente generación
-        for i in range(int(tam_poblacion/2)): 
-            padres=[]
-            #selecciona par de padres según el método seteado
-            if metodo_selec == 'R':
-                padres = ruleta(funcs, 2)
-            else:
-                padres = torneo(funcs,2, tam_torneo)
-
-            if random() < prob_crossover: #verifica si hay crossover
-                hijo1, hijo2 = crossover(inputsBin[padres[0]], inputsBin[padres[1]]) #aplica operador de crossover
-            else: #no hay corossover y los padres pasan a ser hijos
-                hijo1 = inputsBin[padres[0]]
-                hijo2 = inputsBin[padres[1]]
-            next_inputsBin.extend([hijo1, hijo2]) #se agregan los hijos a la siguiente generación
-
-        for i in range(len(next_inputsBin)): #verifica si se aplica mutación para cada cromosoma
-            next_inputsBin[i] = mutacion(next_inputsBin[i], prob_mutacion) 
-            #print(mutacion(next_inputsBin[i], prob_mutacion))
-
-        inputsBin = next_inputsBin #la siguiente generación pasa a ser la actual
-        inputs = []
-        #se calculan los valores en decimal
-        for i in inputsBin:
-            s = int(i, 2)
-            inputs.append(s)
-
-    #Gráficas
+def graficar(ciclos: int, maximos: list, promedios: list, minimos: list) -> None:
     plt.plot(maximos, color='red' ) 
     plt.xlim([0,ciclos])
     plt.ylim([0,1])
@@ -163,6 +111,68 @@ def main():
     plt.xlabel('población') 
     plt.title("Valores mínimos") 
     plt.show()
+
+
+def main():
+
+    maximos=[]
+    promedios=[]
+    minimos=[]
+
+    objFuncs = []
+    inputsBin, inputs = poblacion_inicial(tam_poblacion)
+    for ciclo in range(ciclos):
+        objFuncs=[]
+        #calcula la función objetivo de cada elemento
+        for ints in inputs:
+            objFuncs.append(objetiveFunc(ints))
+        funcs = fitness(objFuncs)
+
+        #extraer valores obtenidos
+        print("Generación: " + str(ciclo))
+        print("Cromosoma Mayor valor: "+ str(inputsBin[objFuncs.index(max(objFuncs))]))
+        print("Mayor:" + str(max(objFuncs)))
+        print("Promedio:" + str(mean(objFuncs)))
+        print("Menor:" + str(min(objFuncs)))
+        maximos.append(max(objFuncs))
+        promedios.append(mean(objFuncs))
+        minimos.append(min(objFuncs))
+
+
+        next_inputsBin = [] #inicializa la siguiente generación
+        n = int(tam_poblacion/2)
+        if usa_elitismo:
+            int((tam_poblacion-2)/2) #corre una vez menos porque con elitismo los dos mejores padres pasan directamente
+            next_inputsBin.append(inputsBin[funcs.index(max(funcs))])
+            next_inputsBin.append(inputsBin[funcs.index(sorted(funcs)[-2])])
+
+        for i in range(n): 
+            padres=[]
+            #selecciona par de padres según el método seteado
+            if metodo_selec == 'R':
+                padres = ruleta(funcs, 2)
+            else:
+                padres = torneo(funcs,2, tam_torneo)
+
+            if random() < prob_crossover: #verifica si hay crossover
+                hijo1, hijo2 = crossover(inputsBin[padres[0]], inputsBin[padres[1]]) #aplica operador de crossover
+            else: #no hay corossover y los padres pasan a ser hijos
+                hijo1 = inputsBin[padres[0]]
+                hijo2 = inputsBin[padres[1]]
+            next_inputsBin.extend([hijo1, hijo2]) #se agregan los hijos a la siguiente generación
+
+        for i in range(len(next_inputsBin)): #verifica si se aplica mutación para cada cromosoma
+            next_inputsBin[i] = mutacion(next_inputsBin[i], prob_mutacion) 
+            #print(mutacion(next_inputsBin[i], prob_mutacion))
+
+        inputsBin = next_inputsBin #la siguiente generación pasa a ser la actual
+        inputs = []
+        #se calculan los valores en decimal
+        for i in inputsBin:
+            s = int(i, 2)
+            inputs.append(s)
+    
+    graficar(ciclos, maximos, promedios, minimos)
 
 
 
