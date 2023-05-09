@@ -1,8 +1,21 @@
 from random import *
+from statistics import mean
+import matplotlib.pyplot as plt
 
-#funcion bjetivo = x/(2**30-1)
+
+#funcion objetivo = x/(2**30-1)
 inputs = []
 inputsBin = []
+
+#parámetros
+prob_crossover = 0.75
+prob_mutacion = 0.005
+tam_poblacion = 10
+ciclos = 20
+tam_torneo = 4
+metodo_selec = 'R' # R: ruleta / T: torneo
+usa_elitismo = True 
+
 
 #Chance esta entre (0, 1)
 def roll(chance: float) -> bool:
@@ -14,6 +27,7 @@ def poblacion_inicial(n: int) -> None:
         inputsBin.append(numero)
         s = int(numero, 2)
         inputs.append(s)
+    return inputsBin, inputs
 
 def ruleta(listFitness: list, popSelected: int) -> list:
     elegidos = []
@@ -22,10 +36,34 @@ def ruleta(listFitness: list, popSelected: int) -> list:
         elegidos.append(choices(list, listFitness)[0])
     return elegidos
 
-def mutacion():
-    pass
+def torneo(listFitness : list, popSelected: int, torneo_size: int) ->list:
+    elegidos = [] 
+    for _ in range(popSelected): 
+        list = [j for j in range(len(listFitness))]
+        torneo = sample(list, torneo_size) #elige participantes del torneo
+        listFitness_torneo = [listFitness[i] for i in torneo]
+        elegidos.append(choices(torneo, listFitness_torneo)) #elige ganador del torneo con probabilidad basada en su fitness
+    flat_elegidos = []
+    for e in elegidos:
+        flat_elegidos.extend(e)
+    return flat_elegidos
+        
+       
 
-def crossover(parent1: str, parent2: str) -> Tuple[str, str]:
+def mutacion(cromosoma : str, prob: float) -> list:
+    lista = list(cromosoma)
+    if random() < prob: #determina si se aplica la mutación o no basado en la probabilidad de mutación
+        punto = randint(1, len(lista) - 1) #determina el gen que se va a mutar
+        #Método de mutación: Invertida. Si es 1 pone 0 y si es 0 pone 1
+        if lista[punto] == '0':
+            lista[punto] = '1'
+        else: 
+            lista[punto] = '0'
+        cromosoma = ''.join(lista)
+    return cromosoma 
+
+
+def crossover(parent1: str, parent2: str) -> tuple[str, str]:
     # Escoger un punto de cruzamiento aleatorio
     crossover_point = randint(1, len(parent1) - 1)
 
@@ -46,15 +84,96 @@ def fitness(funciones_obj: list) -> list:
 def objetiveFunc(x: int) -> float:
     return (x/(2**(30) - 1))
 
+
+def graficar(ciclos: int, maximos: list, promedios: list, minimos: list) -> None:
+    plt.plot(maximos, color='red' ) 
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1])
+    plt.ylabel('valor') 
+    plt.xlabel('población') 
+    plt.title("Valores máximos") 
+    plt.show()
+
+    plt.plot(promedios, color='green' ) 
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1])
+    plt.ylabel('valor') 
+    plt.xlabel('población') 
+    plt.title("Valores promedio") 
+    plt.show()
+
+
+    plt.plot(minimos, color='blue' ) 
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1])
+    plt.ylabel('valor') 
+    plt.xlabel('población') 
+    plt.title("Valores mínimos") 
+    plt.show()
+
+
 def main():
+
+    maximos=[]
+    promedios=[]
+    minimos=[]
+
     objFuncs = []
-    poblacion_inicial(10)
-    for ints in inputs:
-        objFuncs.append(objetiveFunc(ints))
-    funcs = fitness(objFuncs)
-    print(funcs)
-    print(sum(funcs))
-    print(ruleta(funcs, 2))
+    inputsBin, inputs = poblacion_inicial(tam_poblacion)
+    for ciclo in range(ciclos):
+        objFuncs=[]
+        #calcula la función objetivo de cada elemento
+        for ints in inputs:
+            objFuncs.append(objetiveFunc(ints))
+        funcs = fitness(objFuncs)
+
+        #extraer valores obtenidos
+        print("Generación: " + str(ciclo))
+        print("Cromosoma Mayor valor: "+ str(inputsBin[objFuncs.index(max(objFuncs))]))
+        print("Mayor:" + str(max(objFuncs)))
+        print("Promedio:" + str(mean(objFuncs)))
+        print("Menor:" + str(min(objFuncs)))
+        maximos.append(max(objFuncs))
+        promedios.append(mean(objFuncs))
+        minimos.append(min(objFuncs))
+
+
+        next_inputsBin = [] #inicializa la siguiente generación
+        n = int(tam_poblacion/2)
+        if usa_elitismo:
+            int((tam_poblacion-2)/2) #corre una vez menos porque con elitismo los dos mejores padres pasan directamente
+            next_inputsBin.append(inputsBin[funcs.index(max(funcs))])
+            next_inputsBin.append(inputsBin[funcs.index(sorted(funcs)[-2])])
+
+        for i in range(n): 
+            padres=[]
+            #selecciona par de padres según el método seteado
+            if metodo_selec == 'R':
+                padres = ruleta(funcs, 2)
+            else:
+                padres = torneo(funcs,2, tam_torneo)
+
+            if random() < prob_crossover: #verifica si hay crossover
+                hijo1, hijo2 = crossover(inputsBin[padres[0]], inputsBin[padres[1]]) #aplica operador de crossover
+            else: #no hay corossover y los padres pasan a ser hijos
+                hijo1 = inputsBin[padres[0]]
+                hijo2 = inputsBin[padres[1]]
+            next_inputsBin.extend([hijo1, hijo2]) #se agregan los hijos a la siguiente generación
+
+        for i in range(len(next_inputsBin)): #verifica si se aplica mutación para cada cromosoma
+            next_inputsBin[i] = mutacion(next_inputsBin[i], prob_mutacion) 
+            #print(mutacion(next_inputsBin[i], prob_mutacion))
+
+        inputsBin = next_inputsBin #la siguiente generación pasa a ser la actual
+        inputs = []
+        #se calculan los valores en decimal
+        for i in inputsBin:
+            s = int(i, 2)
+            inputs.append(s)
+    
+    graficar(ciclos, maximos, promedios, minimos)
+
+
 
 
 if __name__ == '__main__':
