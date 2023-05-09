@@ -36,7 +36,6 @@ def ruleta(listFitness: list, popSelected: int) -> list:
         elegidos.append(choices(list, listFitness)[0])
     return elegidos
 
-
 def torneo(listFitness : list, popSelected: int, torneo_size: int) ->list:
     elegidos = [] 
     for _ in range(popSelected): 
