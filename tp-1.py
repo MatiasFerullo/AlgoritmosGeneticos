@@ -1,6 +1,8 @@
 from random import *
 from statistics import mean
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
 
 #funcion objetivo = x/(2**30-1)
 cromosomas = []
@@ -86,31 +88,34 @@ def funcion_fitness(funciones_objetivo: list) -> list:
 def funcion_objetivo(x: int) -> float:
     return (x/(2**(30) - 1))
 
+def cargar_a_excel(generacion, cromosoma_mayor, maximo, promedio, menor):
+    datos = {
+        'Generación': [generacion],
+        'Cromosoma Mayor': [cromosoma_mayor],
+        'Máximo': [maximo],
+        'Promedio': [promedio],
+        'Menor': [menor]
+    }
+    
+    if os.path.exists('datos.xlsx'):
+        df = pd.read_excel('datos.xlsx')
+        df = pd.concat([df, pd.DataFrame(datos)], ignore_index=True)
+    else:
+        df = pd.DataFrame(datos)
+    
+    df.to_excel('datos.xlsx', index=False)
 
 def graficar(ciclos: int, maximos: list, promedios: list, minimos: list) -> None:
+    
+    plt.xlim([0,ciclos])
+    plt.ylim([0,1.05])
+    plt.ylabel('valor') 
+    plt.xlabel('población')
+
     plt.plot(maximos, color='red' ) 
-    plt.xlim([0,ciclos])
-    plt.ylim([0,1])
-    plt.ylabel('valor') 
-    plt.xlabel('población') 
-    plt.title("Valores máximos") 
-    plt.show()
-
     plt.plot(promedios, color='green' ) 
-    plt.xlim([0,ciclos])
-    plt.ylim([0,1])
-    plt.ylabel('valor') 
-    plt.xlabel('población') 
-    plt.title("Valores promedio") 
-    plt.show()
-
-
     plt.plot(minimos, color='blue' ) 
-    plt.xlim([0,ciclos])
-    plt.ylim([0,1])
-    plt.ylabel('valor') 
-    plt.xlabel('población') 
-    plt.title("Valores mínimos") 
+    
     plt.show()
 
 
@@ -130,18 +135,16 @@ def main():
             funciones_objetivo.append(funcion_objetivo(cromosoma))
         funciones_fitness = funcion_fitness(funciones_objetivo)
 
-        #extraer valores obtenidos
-        print("")
-        print("===================================")
-        print("Generación: " + str(ciclo))
-        print("Cromosoma Mayor valor: "+ str(binary_cromosomas[funciones_objetivo.index(max(funciones_objetivo))]))
-        print("Mayor:" + str(max(funciones_objetivo)))
-        print("Promedio:" + str(mean(funciones_objetivo)))
-        print("Menor:" + str(min(funciones_objetivo)))
-        maximos.append(max(funciones_objetivo))
-        promedios.append(mean(funciones_objetivo))
-        minimos.append(min(funciones_objetivo))
+        maxF, meanF, minF = max(funciones_objetivo), mean(funciones_objetivo), min(funciones_objetivo)
 
+        #extraer valores obtenidos
+        cargar_a_excel(ciclo, binary_cromosomas[funciones_objetivo.index(max(funciones_objetivo))]
+                       , maxF, meanF, minF)
+        
+        maximos.append(maxF)
+        promedios.append(meanF)
+        minimos.append(minF)
+        
         #inicializa la siguiente generación
         next_binary_cromosomas = [] 
         n = int(tam_poblacion/2)
