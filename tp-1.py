@@ -1,6 +1,8 @@
 from random import *
 from statistics import mean
 import matplotlib.pyplot as plt
+import pandas as pd
+
 
 #funcion objetivo = x/(2**30-1)
 cromosomas = []
@@ -87,31 +89,24 @@ def funcion_objetivo(x: int) -> float:
     return (x/(2**(30) - 1))
 
 
-def graficar(ciclos: int, maximos: list, promedios: list, minimos: list) -> None:
+def graficar(maximos: list, promedios: list, minimos: list) -> None:
     plt.plot(maximos, color='red' ) 
-    plt.xlim([0,ciclos])
-    plt.ylim([0,1])
-    plt.ylabel('valor') 
-    plt.xlabel('población') 
-    plt.title("Valores máximos") 
-    plt.show()
-
     plt.plot(promedios, color='green' ) 
-    plt.xlim([0,ciclos])
-    plt.ylim([0,1])
-    plt.ylabel('valor') 
-    plt.xlabel('población') 
-    plt.title("Valores promedio") 
-    plt.show()
-
-
     plt.plot(minimos, color='blue' ) 
-    plt.xlim([0,ciclos])
+
+    plt.xlim([0,len(maximos)])
     plt.ylim([0,1])
     plt.ylabel('valor') 
     plt.xlabel('población') 
-    plt.title("Valores mínimos") 
+    plt.legend(["Máximo", "Promedio", "Mínimo"], loc ="lower right")
     plt.show()
+
+
+def exportar_excel(binary_cromosomas:list, maximos: list, promedios: list, minimos: list) -> None:
+    df = pd.DataFrame(list(zip(binary_cromosomas,maximos, promedios, minimos))
+        ,columns =['Cromosoma Mayor Valor','Máximo', 'Promedio', 'Mínimo']) 
+    df.to_excel('resultados.xlsx', sheet_name=str(len(maximos))) 
+
 
 
 def main():
@@ -120,6 +115,9 @@ def main():
     promedios = []
     minimos = []
     funciones_objetivo = []
+
+    print("Resultados Obtenidos:")
+    print("Población\t\tCromosoma Mayor Valor\t\t\t\tMayor\t\t\tPromedio\t\t\tMenor")
     
     binary_cromosomas, cromosomas = poblacion_inicial(tam_poblacion)
     
@@ -131,13 +129,8 @@ def main():
         funciones_fitness = funcion_fitness(funciones_objetivo)
 
         #extraer valores obtenidos
-        print("")
-        print("===================================")
-        print("Generación: " + str(ciclo))
-        print("Cromosoma Mayor valor: "+ str(binary_cromosomas[funciones_objetivo.index(max(funciones_objetivo))]))
-        print("Mayor:" + str(max(funciones_objetivo)))
-        print("Promedio:" + str(mean(funciones_objetivo)))
-        print("Menor:" + str(min(funciones_objetivo)))
+        print("\t"+str(ciclo+1)+"\t\t"+str(binary_cromosomas[funciones_objetivo.index(max(funciones_objetivo))])
+            +"\t"+str(max(funciones_objetivo))+"\t"+str(mean(funciones_objetivo))+"\t"+str(min(funciones_objetivo)))
         maximos.append(max(funciones_objetivo))
         promedios.append(mean(funciones_objetivo))
         minimos.append(min(funciones_objetivo))
@@ -178,8 +171,8 @@ def main():
             cromosoma = int(b_cromosoma, 2)
             cromosomas.append(cromosoma)
     
-    graficar(ciclos, maximos, promedios, minimos)
-
+    graficar(maximos, promedios, minimos)
+    exportar_excel(binary_cromosomas, maximos, promedios, minimos)
 
 if __name__ == '__main__':
     main()
