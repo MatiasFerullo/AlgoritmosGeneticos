@@ -10,7 +10,7 @@ BinaryCromosomas = []
 
 #parámetros
 prob_crossover = 0.75
-prob_mutacion = 0.005
+prob_mutacion = 0.05
 tam_poblacion = 10
 ciclos = 20
 tam_torneo = 4
