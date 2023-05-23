@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-#funcion objetivo = x/(2**30-1)
-cromosomas = []
-BinaryCromosomas = []
+#funcion objetivo: f(x) = x/(2**30-1)
+cromosomas = [] #guarda los valores decimales de los cromosomas
+BinaryCromosomas = [] #guarda las cadenas de unos y ceros que representan al los cromosomas
 
 #parámetros
 prob_crossover = 0.75
@@ -20,11 +20,11 @@ usa_elitismo = True
 
 def poblacion_inicial(n: int) -> None:
     for _ in range(n):
-        cromosoma = ''.join(choice(['0', '1']) for _ in range(30))
+        cromosoma = ''.join(choice(['0', '1']) for _ in range(30)) #genera los cromosomas (1 y 0) de forma aleatoria
         BinaryCromosomas.append(cromosoma)
-        s = int(cromosoma, 2)
+        s = int(cromosoma, 2) #obtiene valor decimal del cromosoma
         cromosomas.append(s)
-    return BinaryCromosomas, cromosomas
+    return BinaryCromosomas, cromosomas #devuelve lista de cromosomas y lista de valores decimales
 
 
 def ruleta(funciones_fitness: list, n_padres: int) -> list:
@@ -32,7 +32,7 @@ def ruleta(funciones_fitness: list, n_padres: int) -> list:
 
     for _ in range(n_padres):
         list = [j for j in range(len(funciones_fitness))]
-        padres_elegidos.append(choices(list, funciones_fitness)[0])
+        padres_elegidos.append(choices(list, funciones_fitness)[0]) #elije un cromosoma con probabilidad proporcional a su fitness
 
     return padres_elegidos
 
@@ -104,13 +104,14 @@ def graficar(maximos: list, promedios: list, minimos: list) -> None:
 
 def exportar_excel(binary_cromosomas:list, maximos: list, promedios: list, minimos: list) -> None:
     df = pd.DataFrame(list(zip(binary_cromosomas,maximos, promedios, minimos))
-        ,columns =['Cromosoma Mayor Valor','Máximo', 'Promedio', 'Mínimo']) 
-    df.to_excel('resultados.xlsx', sheet_name=str(len(maximos))) 
+        ,columns =['Cromosoma Mayor Valor','Máximo', 'Promedio', 'Mínimo']) #convierte listas a un dataframe para facilitar la exportación
+    df.to_excel('resultados.xlsx', sheet_name=str(len(maximos))) #genera el archivo
 
 
 
 def main():
 
+    maximos_cromosomas=[]
     maximos = []
     promedios = []
     minimos = []
@@ -130,7 +131,8 @@ def main():
 
         #extraer valores obtenidos
         print("\t"+str(ciclo+1)+"\t\t"+str(binary_cromosomas[funciones_objetivo.index(max(funciones_objetivo))])
-            +"\t"+str(max(funciones_objetivo))+"\t"+str(mean(funciones_objetivo))+"\t"+str(min(funciones_objetivo)))
+            +"\t"+str(max(funciones_objetivo))+"\t"+str(mean(funciones_objetivo))+"\t"+str(min(funciones_objetivo))) 
+        maximos_cromosomas.append(binary_cromosomas[funciones_objetivo.index(max(funciones_objetivo))])
         maximos.append(max(funciones_objetivo))
         promedios.append(mean(funciones_objetivo))
         minimos.append(min(funciones_objetivo))
@@ -172,7 +174,7 @@ def main():
             cromosomas.append(cromosoma)
     
     graficar(maximos, promedios, minimos)
-    exportar_excel(binary_cromosomas, maximos, promedios, minimos)
+    exportar_excel(maximos_cromosomas, maximos, promedios, minimos)
 
 if __name__ == '__main__':
     main()
